@@ -1,0 +1,88 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - master
+      - dev
+  pull_request:
+    branches:
+      - master
+      - dev
+  workflow_dispatch:
+
+jobs:
+  # ========================================================
+  # Job 1: Backend (PHP, Code Quality & Automated Tests)
+  # ========================================================
+  backend:
+    name: Backend CI (PHP / Laravel)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP Environment
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, dom, fileinfo, sqlite3, pdo_sqlite, bcmath, json, tokenizer, xml, ctype, iconv, intl
+          coverage: none
+          tools: composer:v2
+
+      - name: Get Composer Cache Directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache Composer Dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: Install Composer Dependencies
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader --no-progress
+
+      - name: Setup Environment File & App Key
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Ensure SQLite Database Exists
+        run: touch database/database.sqlite
+
+      - name: Check Code Style (Laravel Pint)
+        run: ./vendor/bin/pint --test
+
+      - name: Run Backend Tests (PHPUnit)
+        run: php artisan test
+
+  # ========================================================
+  # Job 2: Frontend (Node.js, Dependencies & Vite Build)
+  # ========================================================
+  frontend:
+    name: Frontend CI (Node / React Vite)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install NPM Dependencies
+        run: npm ci
+
+      - name: Build Frontend Assets (Vite)
+        run: npm run build
+
+      - name: Verify Build Artifacts
+        run: |
+          test -f public/build/manifest.json
+          echo "Vite build completed and manifest generated successfully!"
