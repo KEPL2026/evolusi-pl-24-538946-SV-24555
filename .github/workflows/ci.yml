@@ -5,11 +5,17 @@ on:
     branches:
       - master
       - dev
+      - 'feat/**'
   pull_request:
     branches:
       - master
       - dev
   workflow_dispatch:
+
+# Izinkan GITHUB_TOKEN untuk membuat PR dan merge
+permissions:
+  contents: write
+  pull-requests: write
 
 jobs:
   # ========================================================
@@ -86,3 +92,112 @@ jobs:
         run: |
           test -f public/build/manifest.json
           echo "Vite build completed and manifest generated successfully!"
+
+  # ========================================================
+  # Job 3: Auto PR feat/* → dev + Auto Merge
+  # Berjalan hanya saat push ke branch feat/**
+  # ========================================================
+  auto-pr-feat-to-dev:
+    name: Auto PR & Merge (feat → dev)
+    runs-on: ubuntu-latest
+    needs: [backend, frontend]
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/heads/feat/')
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract Branch Name
+        id: branch
+        run: echo "name=${GITHUB_REF#refs/heads/}" >> $GITHUB_OUTPUT
+
+      - name: Create Pull Request feat → dev
+        id: create-pr
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          base: dev
+          head: ${{ steps.branch.outputs.name }}
+          title: "feat: Auto PR from ${{ steps.branch.outputs.name }} → dev"
+          body: |
+            ## 🤖 Auto-generated Pull Request
+
+            **Source branch**: `${{ steps.branch.outputs.name }}`
+            **Target branch**: `dev`
+
+            Pull request ini dibuat secara otomatis oleh CI/CD pipeline setelah semua
+            pengujian backend (PHP/Laravel) dan frontend (Node/Vite) berhasil ✅
+
+            ---
+            *Trigger: push ke `${{ steps.branch.outputs.name }}`*
+          labels: auto-merge, feat-to-dev
+          draft: false
+
+      - name: Enable Auto-Merge (Merge Commit)
+        if: steps.create-pr.outputs.pull-request-number != ''
+        uses: peter-evans/enable-pull-request-automerge@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          pull-request-number: ${{ steps.create-pr.outputs.pull-request-number }}
+          merge-method: merge
+
+      - name: Log PR Result
+        run: |
+          echo "✅ Pull Request #${{ steps.create-pr.outputs.pull-request-number }} berhasil dibuat."
+          echo "🔗 URL: ${{ steps.create-pr.outputs.pull-request-url }}"
+          echo "🔀 Auto-merge diaktifkan, PR akan otomatis ter-merge setelah status check selesai."
+
+  # ========================================================
+  # Job 4: Auto PR dev → master (Merge Manual oleh Reviewer)
+  # Berjalan hanya saat push ke branch dev
+  # ========================================================
+  auto-pr-dev-to-master:
+    name: Auto PR (dev → master)
+    runs-on: ubuntu-latest
+    needs: [backend, frontend]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/dev'
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create Pull Request dev → master
+        id: create-pr
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          base: master
+          head: dev
+          title: "release: Auto PR from dev → master"
+          body: |
+            ## 🚀 Release Pull Request
+
+            **Source branch**: `dev`
+            **Target branch**: `master`
+
+            Pull request ini dibuat secara otomatis oleh CI/CD pipeline setelah semua
+            pengujian backend (PHP/Laravel) dan frontend (Node/Vite) berhasil ✅
+
+            ### ⚠️ Perlu Review Manual
+            PR ini memerlukan review dan approval dari reviewer sebelum di-merge ke `master`.
+
+            ---
+            *Trigger: push ke `dev`*
+          labels: release, dev-to-master
+          draft: false
+
+      - name: Log PR Result
+        run: |
+          if [ -n "${{ steps.create-pr.outputs.pull-request-number }}" ]; then
+            echo "✅ Pull Request #${{ steps.create-pr.outputs.pull-request-number }} berhasil dibuat."
+            echo "🔗 URL: ${{ steps.create-pr.outputs.pull-request-url }}"
+            echo "👥 Menunggu review dari reviewer sebelum merge ke master."
+          else
+            echo "ℹ️ PR sudah ada sebelumnya atau tidak ada perubahan baru antara dev dan master."
+          fi
