@@ -1,59 +1,98 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# FindHub 🔍
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+FindHub adalah platform berbasis web untuk mempertemukan pemilik barang yang kehilangan barangnya dengan pihak penemu barang. Platform ini dibangun menggunakan arsitektur Laravel monolith, dengan Vite sebagai *build tool* utama yang mengelola aset frontend (React/Vanilla) secara modern, minimalis, dan responsif.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## 🚀 Fitur Utama
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- **Laporan Penemuan (Found Items):** Penemu barang dapat membuat laporan penemuan lengkap dengan foto, kategori, deskripsi, lokasi penemuan, dan tanggal.
+- **Laporan Kehilangan (Lost Items):** Pengguna yang kehilangan barang dapat mendaftarkan rincian barang yang dicari beserta estimasi lokasi terakhir.
+- **Pencarian & Filter Cepat:** Pencarian barang berdasarkan kata kunci, kategori, status barang, tanggal, serta lokasi.
+- **Proses Klaim & Verifikasi:** Sistem verifikasi kepemilikan barang sebelum kontak penemu atau titik temu dibagikan.
+- **Dashboard Pengguna:** Manajemen status laporan barang (Masih Hilang, Ditemukan, Selesai Diklaim).
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+---
 
-## Learning Laravel
+## 🛠️ Tech Stack
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+- **Backend:** Laravel (PHP)
+- **Frontend:** React.js / Vanilla JS (Dikelola melalui Vite), Tailwind CSS
+- **Database:** MySQL / PostgreSQL
+- **Asset Bundler:** Vite
+- **Storage:** Local / Amazon S3 (untuk manajemen foto barang)
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+---
 
-## Laravel Sponsors
+## ⚙️ Persyaratan Sistem
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+- PHP >= 8.2
+- Composer >= 2.x
+- Node.js (LTS version) & npm/pnpm
+- Database Server (MySQL / MariaDB / PostgreSQL)
 
-### Premium Partners
+---
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+## 📦 Instalasi & Setup
 
-## Contributing
+1. **Clone Repositori**
+   ```bash
+   git clone https://github.com/username/findhub.git
+   cd findhub
+   ```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+2. **Install Dependensi Backend (PHP)**
+   ```bash
+   composer install
+   ```
 
-## Code of Conduct
+3. **Install Dependensi Frontend (Node.js)**
+   ```bash
+   npm install
+   ```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+4. **Konfigurasi Environment**
+   Salin file konfigurasi bawaan dan sesuaikan kredensial database:
+   ```bash
+   cp .env.example .env
+   php artisan key:generate
+   ```
 
-## Security Vulnerabilities
+5. **Migrasi Database & Seeding**
+   Siapkan struktur tabel dan data awal:
+   ```bash
+   php artisan migrate --seed
+   ```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+6. **Buat Symlink Storage**
+   Agar gambar barang yang diunggah dapat diakses di frontend:
+   ```bash
+   php artisan storage:link
+   ```
 
-## License
+7. **Jalankan Server Pengembangan**
+   Jalankan server backend Laravel dan *Vite dev server* secara bersamaan di terminal yang terpisah:
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+   **Terminal 1 (Backend):**
+   ```bash
+   php artisan serve
+   ```
+
+   **Terminal 2 (Frontend/Vite):**
+   ```bash
+   npm run dev
+   ```
+
+   Buka peramban dan akses `http://127.0.0.1:8000`.
+
+---
+
+## 🗄️ Skema Database Singkat
+
+- **users:** Menyimpan kredensial dan kontak pengguna.
+- **categories:** Kategori barang (Elektronik, Dompet, Dokumen, Aksesoris, dsb).
+- **items:** Data laporan barang dengan penanda tipe (`lost` atau `found`), koordinat/nama lokasi, status (`open`, `claimed`, `resolved`), dan deskripsi.
+- **item_images:** Gambar pendukung laporan barang.
+- **claims:** Riwayat pengajuan klaim kepemilikan dari pemilik ke penemu barang.
+
+---
