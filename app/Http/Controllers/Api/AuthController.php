@@ -39,9 +39,9 @@ class AuthController extends Controller
         ], 201);
     }
 
-     public function login(Request $request)
+    public function login(Request $request)
     {
-        if (!auth()->attempt($request->only('email', 'password'))) {
+        if (! auth()->attempt($request->only('email', 'password'))) {
             return response()->json(['message' => 'Invalid login details'], 401);
         }
 
